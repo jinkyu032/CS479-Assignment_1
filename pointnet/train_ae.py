@@ -23,16 +23,17 @@ def step(points, model):
     # TODO : Implement step function for AutoEncoder. 
     # Hint : Use chamferDist defined in above
     # Hint : You can compute chamfer distance between two point cloud pc1 and pc2 by chamfer_distance(pc1, pc2)
-    
-    preds = None
-    loss = None
+    preds = model(points)
+    loss,_= chamfer_distance(points, preds)
 
     return loss, preds
 
 
 def train_step(points, model, optimizer):
+    optimizer.zero_grad()
     loss, preds = step(points, model)
-
+    loss.backward()
+    optimizer.step()
     # TODO : Implement backpropagation using optimizer and loss
 
     return loss, preds
@@ -77,6 +78,7 @@ def main(args):
         pbar = tqdm(train_dl)
         train_epoch_loss = []
         for points, _ in pbar:
+            points = points.to(device)
             train_batch_loss, train_batch_preds = train_step(points, model, optimizer)
             train_epoch_loss.append(train_batch_loss)
             pbar.set_description(
@@ -90,6 +92,7 @@ def main(args):
         with torch.no_grad():
             val_epoch_loss = []
             for points, _ in val_dl:
+                points = points.to(device)
                 val_batch_loss, val_batch_preds = validation_step(points, model)
                 val_epoch_loss.append(val_batch_loss)
 
@@ -109,6 +112,7 @@ def main(args):
     with torch.no_grad():
         test_epoch_loss = []
         for points, _ in test_dl:
+            points = points.to(device)
             test_batch_loss, test_batch_preds = validation_step(points, model)
             test_epoch_loss.append(test_batch_loss)
 

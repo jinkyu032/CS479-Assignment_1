@@ -20,17 +20,21 @@ def step(points, labels, model):
     """
     
     # TODO : Implement step function for classification.
-
-    loss = None
-    preds = None
+    criterion = torch.nn.CrossEntropyLoss()
+    logit = model(points)
+    loss = criterion(logit, labels)
+    preds = torch.argmax(logit, dim=1)
     return loss, preds
 
 
 def train_step(points, labels, model, optimizer, train_acc_metric):
+    optimizer.zero_grad()
     loss, preds = step(points, labels, model)
     train_batch_acc = train_acc_metric(preds, labels.to(device))
 
     # TODO : Implement backpropagation using optimizer and loss
+    loss.backward()
+    optimizer.step()
 
     return loss, train_batch_acc
 
@@ -85,6 +89,7 @@ def main(args):
         pbar = tqdm(train_dl)
         train_epoch_loss = []
         for points, labels in pbar:
+            points, labels = points.to(device), labels.to(device)
             train_batch_loss, train_batch_acc = train_step(
                 points, labels, model, optimizer, train_acc_metric
             )
